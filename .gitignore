@@ -1,0 +1,19 @@
+node_modules/
+.freebuff/
+.qodo/
+
+# Runtime data and downloaded source caches
+data/cache/
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db

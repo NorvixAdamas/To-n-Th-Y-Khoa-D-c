@@ -1,0 +1,32 @@
+{
+  "name": "global-medical-encyclopedia",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Global Medical Encyclopedia — nền tảng bách khoa toàn thư y khoa với dữ liệu từ MONDO, HPO, Orphanet, Uberon, openFDA, NCBI, PubMed, Europe PMC và ClinicalTrials.gov",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "ingest": "node scripts/ingest/run.js",
+    "ingest:mondo": "node scripts/ingest/mondo.js",
+    "ingest:hpo": "node scripts/ingest/hpo.js",
+    "ingest:orphadata": "node scripts/ingest/orphadata.js",
+    "ingest:uberon": "node scripts/ingest/uberon.js",
+    "ingest:openfda": "node scripts/ingest/openfda.js",
+    "ingest:doid": "node scripts/ingest/doid.js",
+    "ingest:ncbi-gene": "node scripts/ingest/ncbi-gene.js",
+    "ingest:icd10cm": "node scripts/ingest/icd10cm.js",
+    "ingest:reactome": "node scripts/ingest/reactome.js",
+    "ingest:uniprot": "node scripts/ingest/uniprot.js",
+    "ingest:taxonomy": "node scripts/ingest/taxonomy.js",
+    "ingest:labs": "node scripts/ingest/labs.js",
+    "ingest:vi": "node scripts/ingest/vi-terms.js",
+    "cleanup:mondo": "node scripts/ingest/cleanup-mondo.js",
+    "reindex": "node scripts/ingest/reindex.js",
+    "test": "node scripts/test/smoke.js"
+  },
+  "license": "MIT"
+}
