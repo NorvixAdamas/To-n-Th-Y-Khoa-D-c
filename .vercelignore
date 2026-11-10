@@ -1,0 +1,10 @@
+data/
+dist/
+archive/
+server/
+node_modules/
+Toan-Thu-Y-Khoa-full.zip
+screenshot-*.png
+.env
+.env.*
+*.log

@@ -1,5 +1,5 @@
 /** Shared rendering helpers. All dynamic text must pass through esc(). */
-import { esc, fmt, fmtDate, href, pct } from './api.js';
+import { esc, fmt, fmtDate, href, pct, getJson } from './api.js';
 
 export { esc, fmt, fmtDate, href, pct };
 
@@ -133,10 +133,7 @@ export function toast(message, ms = 2600) {
 let statsPromise = null;
 export function getStats(force = false) {
   if (!statsPromise || force) {
-    statsPromise = fetch('/api/stats').then(r => {
-      if (!r.ok) throw new Error('Không tải được thống kê');
-      return r.json();
-    }).catch(err => { statsPromise = null; throw err; });
+    statsPromise = getJson('/api/stats').catch(err => { statsPromise = null; throw err; });
   }
   return statsPromise;
 }

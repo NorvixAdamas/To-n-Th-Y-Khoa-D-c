@@ -1,6 +1,15 @@
-/** Small typed-ish client helpers for the encyclopedia API. */
+/** Small client helpers for the encyclopedia API. */
+import { STATIC_MODE } from './runtime-config.js';
+
+async function staticApi() {
+  return import('./static-api.js');
+}
 
 export async function getJson(path, { timeout = 30000 } = {}) {
+  if (STATIC_MODE) {
+    const api = await staticApi();
+    return api.getJson(path);
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
@@ -21,6 +30,10 @@ export async function getJson(path, { timeout = 30000 } = {}) {
 }
 
 export async function postJson(path, body, { timeout = 45000 } = {}) {
+  if (STATIC_MODE) {
+    const api = await staticApi();
+    return api.postJson(path, body);
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {

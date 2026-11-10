@@ -64,12 +64,12 @@ export async function viewHome() {
         <div class="hero-stat"><strong>${fmt(c.anatomy)}</strong><span>Cấu trúc giải phẫu</span></div>
         <div class="hero-stat"><strong>${fmt(stats.sources.length)}</strong><span>Nguồn dữ liệu tích hợp</span></div>
       </div>
-      <p class="hero-note">Cập nhật gần nhất: ${stats.lastSync ? esc(fmtDate(stats.lastSync)) : 'chưa có lần đồng bộ nào'} · ${readySources}/${stats.sources.length} nguồn ở trạng thái sẵn sàng · ${fmt(stats.linkedDiseases)} bệnh có liên kết triệu chứng (${stats.coverage.symptomCoverage}% số bệnh).</p>
+      <p class="hero-note">Dữ liệu đóng băng tại thời điểm build: ${stats.lastSync ? esc(fmtDate(stats.lastSync)) : 'chưa có lần đồng bộ nào'} · ${readySources}/${stats.sources.length} nguồn ở trạng thái sẵn sàng · ${fmt(stats.linkedDiseases)} bệnh có liên kết triệu chứng (${stats.coverage.symptomCoverage}% số bệnh).</p>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <div><h2>Thư viện tri thức</h2><p>Mỗi mô-đun đọc dữ liệu thật từ cơ sở dữ liệu SQLite với chỉ mục tìm kiếm FTS5, không có danh sách mẫu.</p></div>
+        <div><h2>Thư viện tri thức</h2><p>Mỗi mô-đun đọc dữ liệu thật từ snapshot đóng băng tại thời điểm build và được tra cứu ngay trong trình duyệt; không có danh sách mẫu.</p></div>
         <a href="#/about">Phương pháp &amp; nguồn →</a>
       </div>
       <div class="module-grid">
@@ -82,10 +82,10 @@ export async function viewHome() {
           ['organisms', 'Vi sinh &amp; tác nhân', 'Phân loại NCBI Taxonomy của vi khuẩn, virus, nấm và ký sinh trùng.', c.organisms, 'M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7Z'],
           ['genes', 'Gene &amp; di truyền', 'Gene người từ NCBI Gene, liên kết bệnh Orphanet, pathway Reactome và protein UniProt.', c.genes, 'M4 4c8 0 8 16 16 16M20 4C12 4 12 20 4 20'],
           ['codes', 'Mã bệnh ICD-10-CM', 'Tra mã và mô tả chẩn đoán chính thức từ bộ mã CMS 2026 (public domain).', c.icdCodes, 'M4 6h16M4 12h10M4 18h7M17 14l3 3-3 3'],
-          ['research', 'Nghiên cứu y khoa', 'Tìm PubMed, Europe PMC, Crossref, OpenAlex và thử nghiệm lâm sàng theo bệnh, DOI, năm.', c.articles, 'M4 19V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14l-4-3-4 3-4-3-4 3Z']
+          ['research', 'Nghiên cứu y khoa', 'Tìm PubMed, Europe PMC, Crossref, OpenAlex và thử nghiệm lâm sàng theo bệnh, DOI, năm.', 'Trực tuyến', 'M4 19V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14l-4-3-4 3-4-3-4 3Z']
         ].map(([route, title, text, count, path]) => `
           <a class="card card-hover module-tile" href="#/${route}" style="text-decoration:none;color:inherit">
-            <span class="m-count">${fmt(count)}</span>
+            <span class="m-count">${typeof count === 'number' ? fmt(count) : esc(count)}</span>
             <span class="m-icon"><svg viewBox="0 0 24 24"><path d="${path}"/></svg></span>
             <h3>${title}</h3><p>${text}</p>
           </a>`).join('')}
@@ -131,7 +131,7 @@ export async function viewHome() {
       </div>
       <div class="card card-pad-lg">
         <h2 style="font-size:1.2rem">Trạng thái nguồn dữ liệu</h2>
-        <p class="small muted">Giấy phép và thời điểm đồng bộ được lưu trong bảng <span class="mono">sources</span>.</p>
+        <p class="small muted">Giấy phép và thời điểm lấy dữ liệu được đóng gói trong snapshot; bản tĩnh không tự đồng bộ lại.</p>
         <div>
           ${stats.sources.slice(0, 9).map(s => `
             <div class="source-row">
@@ -141,7 +141,7 @@ export async function viewHome() {
               <div>${statusPill(s.status)}</div>
             </div>`).join('')}
         </div>
-        <p class="mt-2"><a class="btn btn-outline btn-sm" href="#/admin">Mở trung tâm dữ liệu</a></p>
+        <p class="mt-2"><a class="btn btn-outline btn-sm" href="#/about">Phương pháp, giấy phép &amp; giới hạn dữ liệu</a></p>
       </div>
     </section>
 
@@ -280,7 +280,7 @@ export async function viewDisease(params, slug) {
       </div>
       <div class="dh-actions">
         <button class="btn btn-cyan btn-sm" id="printDisease">In / Lưu PDF</button>
-        <a class="btn btn-ghost btn-sm" href="/api/export/disease/${encodeURIComponent(d.slug)}" download="${esc(d.slug)}.json">Tải JSON</a>
+        <button class="btn btn-ghost btn-sm" type="button" data-export-disease>Tải JSON</button>
         <a class="btn btn-ghost btn-sm" href="#/trials${buildQuery({ q: d.name_en })}">Thử nghiệm lâm sàng</a>
       </div>
     </header>
@@ -387,13 +387,14 @@ export async function viewDisease(params, slug) {
       <div class="card card-pad-lg">
         <h2 style="font-size:1.15rem">Dữ liệu thô</h2>
         <p class="small">Tải bản ghi JSON kèm mã định danh, triệu chứng, gene và nguồn.</p>
-        <a class="btn btn-outline btn-sm" href="/api/export/disease/${encodeURIComponent(d.slug)}" download="${esc(d.slug)}.json">Tải JSON</a>
+        <button class="btn btn-outline btn-sm" type="button" data-export-disease>Tải JSON</button>
         <button class="btn btn-outline btn-sm" id="copyCitation">Sao chép trích dẫn</button>
         <p class="tiny muted mt-1" id="citationText">${esc(d.name_en)}. Global Medical Encyclopedia. ${esc(d.mondo_id || '')}${d.orphanet_code ? ` / ORPHA:${d.orphanet_code}` : ''}. Truy cập ${esc(fmtDate(new Date().toISOString()))}.</p>
       </div>
     </div>
   `);
   mountTabs('overview');
+  document.querySelectorAll('[data-export-disease]').forEach(btn => btn.addEventListener('click', () => downloadDiseaseRecord(d)));
   document.getElementById('printDisease')?.addEventListener('click', () => window.print());
   document.getElementById('copyCitation')?.addEventListener('click', async () => {
     try {
@@ -643,6 +644,57 @@ export async function viewAnatomy(params) {
   };
   form.addEventListener('submit', e => { e.preventDefault(); load(new FormData(form).get('q')); });
   load(params.get('aq') || '');
+}
+
+export async function viewAnatomyDetail(params, slug) {
+  setActiveNav('anatomy');
+  const a = await getJson(`/api/anatomy/${encodeURIComponent(slug)}`);
+  render(`
+    ${breadcrumb([{ label: 'Trang chủ', href: '#/' }, { label: 'Giải phẫu', href: '#/anatomy' }, { label: a.name_en }])}
+    <header class="detail-head">
+      <div class="dh-sub">${esc(a.systems || 'Giải phẫu')} · ${esc(a.uberon_id || '')}</div>
+      <h1>${esc(a.name_en)}</h1>
+      ${a.name_vi ? `<div class="dh-sub">${esc(a.name_vi)}</div>` : ''}
+      <div class="dh-codes">${a.uberon_id ? `<span class="code-chip">${esc(a.uberon_id)}</span>` : ''}</div>
+    </header>
+    <div class="two-col mt-2">
+      <div class="stack">
+        <section class="card card-pad-lg">
+          <h2 style="font-size:1.15rem">Định nghĩa</h2>
+          <p>${a.definition ? esc(a.definition) : '<em class="muted">Uberon chưa cung cấp định nghĩa cho thuật ngữ này.</em>'}</p>
+        </section>
+        ${a.children.length ? `<section class="card card-pad-lg"><h2 style="font-size:1.15rem">Cấu trúc con (${fmt(a.children.length)})</h2><div class="chip-cloud">${a.children.map(x => `<a href="#/anatomy/${encodeURIComponent(x.slug)}">${esc(x.name_en)}</a>`).join('')}</div></section>` : ''}
+      </div>
+      <aside class="stack side-card">
+        <div class="card"><h3 style="font-size:.95rem">Thông tin</h3>${facts([
+          ['Hệ', a.systems ? esc(a.systems) : '—'],
+          ['Một phần của', a.part_of ? esc(a.part_of) : '—'],
+          ['Cấu trúc cha', a.parent ? `<a href="#/anatomy/${encodeURIComponent(a.parent.slug)}">${esc(a.parent.name_en)}</a>` : '—'],
+          ['Nguồn', 'Uberon Anatomy Ontology']
+        ])}</div>
+        <div class="card"><h3 style="font-size:.95rem">Nguồn</h3>${sourceList(a.sources, a.retrieved_at)}</div>
+        <div class="card"><p class="small"><a href="#/anatomy">← Về mô hình giải phẫu 3D</a><br><a href="#/diseases?q=${encodeURIComponent(a.name_en)}">Tìm bệnh liên quan</a></p></div>
+      </aside>
+    </div>
+  `);
+}
+
+function downloadDiseaseRecord(d) {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    license: 'Dữ liệu tuân theo giấy phép của từng nguồn được ghi trong trường sources',
+    record: d
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${d.slug}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('Đã tạo tệp JSON từ bản ghi hiện tại');
 }
 
 /* ================================================================== */
@@ -945,7 +997,7 @@ export async function viewGene(params, slug) {
 }
 
 /* ================================================================== */
-/* Research, trials, search, assistant, admin, about                  */
+/* Research, trials, search, assistant, about                         */
 /* ================================================================== */
 
 export async function viewResearch(params) {
@@ -1062,13 +1114,14 @@ export async function viewSearch(params) {
   const types = [['', 'Tất cả'], ['disease', 'Bệnh'], ['symptom', 'Triệu chứng'], ['drug', 'Thuốc'], ['anatomy', 'Giải phẫu'], ['organism', 'Vi sinh'], ['lab', 'Xét nghiệm'], ['gene', 'Gene']];
   render(`
     ${breadcrumb([{ label: 'Trang chủ', href: '#/' }, { label: 'Tìm kiếm toàn hệ thống' }])}
-    ${pageHead({ kicker: 'Global Medical Search', title: 'Tìm kiếm toàn hệ thống', lead: 'Tìm đồng thời bệnh, triệu chứng, thuốc, giải phẫu, vi sinh, xét nghiệm và gene. Hỗ trợ tiếng Việt có dấu/không dấu, tên đồng nghĩa, mã định danh, gợi ý và tìm gần đúng.' })}
+    ${pageHead({ kicker: 'Global Medical Search', title: 'Tìm kiếm toàn hệ thống', lead: 'Tìm bệnh, triệu chứng, thuốc, giải phẫu, vi sinh và xét nghiệm trong snapshot; gene có bộ lọc riêng để giữ chỉ mục nhẹ. Hỗ trợ tiếng Việt có dấu/không dấu, tên đồng nghĩa, mã định danh, gợi ý và tìm gần đúng.' })}
     <form class="card card-pad-lg" id="searchPageForm" style="margin-bottom:1rem">
       <div class="flex gap-1 wrap">
         <input class="input input-search" name="q" value="${esc(q)}" placeholder="Nhập từ khóa, tên bệnh, mã ICD-10/MONDO/ORPHA…" style="flex:1" autofocus>
         <button class="btn btn-primary">Tìm kiếm</button>
       </div>
       <div class="chip-row mt-1">${types.map(([v, l]) => `<a class="chip ${v === type ? 'active' : ''}" href="${href('/search', { q, type: v })}">${l}</a>`).join('')}</div>
+      ${!type ? '<p class="tiny muted mt-1">Gene có chỉ mục riêng để không tải toàn bộ 193.931 gene khi tìm bệnh/thuốc; chọn chip “Gene” để tra gene.</p>' : ''}
     </form>
     ${error ? errorState(error) : ''}
     ${data ? `
@@ -1181,90 +1234,6 @@ function renderAiBlocks(blocks) {
   }).join('');
 }
 
-export async function viewAdmin() {
-  setActiveNav('admin');
-  let data;
-  try { data = await getJson('/api/admin/overview'); }
-  catch (err) {
-    render(`${breadcrumb([{ label: 'Trang chủ', href: '#/' }, { label: 'Trung tâm dữ liệu' }])}
-      <div class="card card-pad-lg">${callout('danger', 'Không có quyền quản trị', `${esc(err.message)}. Đặt biến môi trường ADMIN_TOKEN và gửi header X-Admin-Token, hoặc truy cập từ máy cục bộ.`)}</div>`);
-    return;
-  }
-  const s = data.stats;
-  const quality = data.quality;
-  let polling = null;
-  render(`
-    ${breadcrumb([{ label: 'Trang chủ', href: '#/' }, { label: 'Trung tâm quản lý dữ liệu' }])}
-    ${pageHead({
-      kicker: 'Data Management Center', title: 'Trung tâm quản lý dữ liệu',
-      lead: 'Số liệu thật từ cơ sở dữ liệu, trạng thái từng nguồn, nhật ký đồng bộ và kiểm tra chất lượng. Tác vụ đồng bộ chạy ở tiến trình nền phía máy chủ, không chạy trong trình duyệt.',
-      actions: `<button class="btn btn-outline btn-sm" id="refreshAdmin">Làm mới</button><a class="btn btn-outline btn-sm" href="/api/admin/export">Xuất metadata</a><a class="btn btn-outline btn-sm" href="/api/export/diseases.csv">Xuất CSV bệnh</a>`
-    })}
-    <div class="stat-grid">
-      ${[['Tổng số bệnh', s.counts.diseases], ['Triệu chứng', s.counts.symptoms], ['Thuốc', s.counts.drugs], ['Xét nghiệm', s.counts.labs], ['Giải phẫu', s.counts.anatomy], ['Vi sinh', s.counts.organisms], ['Gene', s.counts.genes], ['Mã ICD-10-CM', s.counts.icdCodes], ['Pathway', s.counts.pathways], ['Protein', s.counts.proteins], ['Liên kết bệnh–triệu chứng', s.counts.diseaseSymptoms], ['Liên kết gene–bệnh', s.counts.diseaseGenes]].map(([l, v]) => `
-        <div class="stat-card"><div class="sv">${fmt(v)}</div><div class="sl">${l}</div></div>`).join('')}
-    </div>
-    <div class="grid grid-2 mt-2">
-      <div class="card card-pad-lg">
-        <div class="flex between wrap center"><h2 style="font-size:1.15rem">Nguồn dữ liệu</h2><span class="tiny muted">DB ${(data.database.sizeBytes / 1048576).toFixed(1)} MB · ${esc(data.database.engine)}</span></div>
-        <p class="small muted">Đồng bộ thủ công theo từng nguồn. Tác vụ chạy nền, có thể bị gián đoạn và chạy lại.</p>
-        <div>${s.sources.map(src => `
-          <div class="source-row">
-            <div><div class="src-name">${esc(src.name)}</div><div class="src-sub">${esc(src.license_name)} · ${fmt(src.record_count)} bản ghi</div></div>
-            <div class="tiny">${statusPill(src.status)}</div>
-            <div class="tiny muted">${src.last_success_at ? esc(fmtDate(src.last_success_at)) : 'Chưa đồng bộ'}</div>
-            <div><button class="btn btn-outline btn-sm" data-sync="${esc(src.slug)}">Đồng bộ</button></div>
-          </div>`).join('')}
-        </div>
-        <div class="flex gap-1 wrap mt-2">
-          <button class="btn btn-primary btn-sm" data-sync="reindex">Lập lại chỉ mục tìm kiếm</button>
-          <a class="btn btn-outline btn-sm" href="https://github.com" target="_blank" rel="noopener noreferrer">Hướng dẫn import</a>
-        </div>
-        <p class="tiny muted mt-1">Nguồn thiếu API key cần cấu hình biến môi trường trên máy chủ (xem README). Không có key giả trong mã nguồn.</p>
-      </div>
-      <div class="card card-pad-lg">
-        <h2 style="font-size:1.15rem">Kiểm tra chất lượng dữ liệu</h2>
-        <div class="stack">
-          <div class="flex between small"><span>Bệnh thiếu định nghĩa</span><strong>${fmt(quality.missingDefinition)}</strong></div>
-          <div class="flex between small"><span>Bệnh chưa có liên kết triệu chứng</span><strong>${fmt(quality.missingSymptoms)}</strong></div>
-          <div class="flex between small"><span>Bệnh chưa phân loại (nhóm “Khác”)</span><strong>${fmt(quality.unclassified)}</strong></div>
-          <div class="flex between small"><span>Triệu chứng không liên kết bệnh</span><strong>${fmt(quality.orphanSymptoms)}</strong></div>
-          <div class="flex between small"><span>Nhóm tên bệnh trùng</span><strong>${fmt(quality.duplicateNames.length)}</strong></div>
-          <div class="flex between small"><span>Mã định danh dùng cho nhiều bệnh</span><strong>${fmt(quality.duplicateIdentifiers.length)}</strong></div>
-        </div>
-        ${quality.duplicateNames.length ? `<details class="mt-1"><summary class="small">Xem tên trùng</summary><ul class="small">${quality.duplicateNames.slice(0, 10).map(d => `<li>${esc(d.name)} (${d.c})</li>`).join('')}</ul></details>` : ''}
-        ${callout('info', 'Cách xử lý', 'Các bản ghi thiếu dữ liệu được giữ nguyên và hiển thị “Chưa có dữ liệu đáng tin cậy”, không tự điền nội dung y khoa.')}
-      </div>
-    </div>
-    <div class="card card-pad-lg mt-2">
-      <h2 style="font-size:1.15rem">Tác vụ đồng bộ gần đây</h2>
-      <div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>Nguồn</th><th>Trạng thái</th><th>Bắt đầu</th><th>Xử lý</th><th>Ghi</th><th>Bỏ qua</th><th>Lỗi</th><th>Thông điệp</th></tr></thead><tbody>
-        ${data.jobs.map(j => `<tr><td class="num">${j.id}</td><td>${esc(j.source_slug)}</td><td>${statusPill(j.status === 'success' ? 'ready' : j.status === 'running' ? 'syncing' : 'failed')}</td><td class="tiny">${esc(j.started_at ? new Date(j.started_at).toLocaleString('vi-VN') : '—')}</td><td class="num">${fmt(j.records_seen)}</td><td class="num">${fmt(j.records_upserted)}</td><td class="num">${fmt(j.records_skipped)}</td><td class="num">${fmt(j.error_count)}</td><td class="tiny">${esc(j.message || '')}</td></tr>`).join('')}
-      </tbody></table></div>
-    </div>
-    <div class="card card-pad-lg mt-2">
-      <h2 style="font-size:1.15rem">Nhật ký hoạt động</h2>
-      <div class="log-list">${data.logs.map(l => `<div class="log-line log-${esc(l.level)}">[${esc(new Date(l.created_at).toLocaleString('vi-VN'))}] ${esc((l.source_slug || 'system').toUpperCase())} · ${esc(l.message)}</div>`).join('') || '<div class="log-line">Chưa có nhật ký.</div>'}</div>
-    </div>
-  `);
-  document.getElementById('refreshAdmin').addEventListener('click', () => viewAdmin());
-  document.querySelectorAll('[data-sync]').forEach(btn => btn.addEventListener('click', async () => {
-    const source = btn.dataset.sync;
-    btn.disabled = true;
-    btn.textContent = 'Đang chạy…';
-    try {
-      const res = await postJson('/api/admin/sync', { source });
-      toast(res.message || 'Đã khởi chạy tác vụ nền');
-      polling = setTimeout(() => viewAdmin(), 4000);
-    } catch (err) {
-      toast(`Không chạy được: ${err.message}`);
-      btn.disabled = false;
-      btn.textContent = 'Đồng bộ';
-    }
-  }));
-  void polling;
-}
-
 export async function viewAbout(params) {
   setActiveNav('about');
   const stats = await getStats();
@@ -1272,6 +1241,7 @@ export async function viewAbout(params) {
   render(`
     ${breadcrumb([{ label: 'Trang chủ', href: '#/' }, { label: 'Phương pháp, giấy phép & miễn trừ' }])}
     ${pageHead({ kicker: 'About & Sources', title: 'Phương pháp, nguồn dữ liệu và giới hạn', lead: 'Trang này công bố cách dữ liệu được nhập, giấy phép của từng nguồn, phạm vi bao phủ thực tế và những phần chưa được triển khai. Không có số liệu minh họa.' })}
+    ${callout('info', 'Ấn bản tĩnh', 'Bản công khai được tạo từ snapshot đóng băng tại thời điểm build. Không có cơ sở dữ liệu ghi, không có tác vụ đồng bộ và không có trang quản trị trên website. Muốn cập nhật dữ liệu, phải chạy bộ nhập dữ liệu cục bộ, tạo lại snapshot rồi triển khai lại.')}
     <div class="grid grid-2">
       <div class="card card-pad-lg">
         <h2 style="font-size:1.15rem">Nguồn dữ liệu đã tích hợp</h2>
@@ -1292,7 +1262,7 @@ export async function viewAbout(params) {
           <div class="flex between small"><span>Gene</span><strong>${fmt(c.genes)}</strong></div>
           <div class="flex between small"><span>Xét nghiệm</span><strong>${fmt(c.labs)}</strong></div>
         </div>
-        ${callout('warn', 'Không phải toàn bộ y học', `Kho dữ liệu hiện có ${fmt(c.diseases)} bản ghi bệnh và chưa bao phủ toàn bộ mọi bệnh đã được ghi nhận trên thế giới. Số liệu được cập nhật từ lần đồng bộ gần nhất: ${stats.lastSync ? esc(fmtDate(stats.lastSync)) : 'chưa có'}.`)}
+        ${callout('warn', 'Không phải toàn bộ y học', `Kho dữ liệu hiện có ${fmt(c.diseases)} bản ghi bệnh và chưa bao phủ toàn bộ mọi bệnh đã được ghi nhận trên thế giới. Snapshot lấy dữ liệu đến: ${stats.lastSync ? esc(fmtDate(stats.lastSync)) : 'chưa có'}; bản tĩnh không tự cập nhật.`)}
       </div>
     </div>
     <div class="card card-pad-lg mt-2">
@@ -1300,7 +1270,7 @@ export async function viewAbout(params) {
       <ol class="small">
         <li><strong>Nhập dữ liệu có kiểm soát:</strong> mỗi nguồn có bộ chuyển đổi riêng, ghi nhật ký số bản ghi xử lý/ghi/bỏ qua/lỗi. Dữ liệu được chuẩn hóa theo mã định danh (MONDO, ORPHA, HPO, NDC, TaxID).</li>
         <li><strong>Chống trùng lặp:</strong> khóa duy nhất theo mã nguồn (MONDO ID, ORPHA code, NDC, TaxID, HPO ID), không dùng tên bệnh làm khóa chính.</li>
-        <li><strong>Tìm kiếm:</strong> SQLite FTS5 với văn bản đã chuẩn hóa bỏ dấu tiếng Việt, xếp hạng BM25, gợi ý tiền tố và tìm gần đúng bằng trigram.</li>
+        <li><strong>Tìm kiếm:</strong> chỉ mục tĩnh được tạo lúc build, chuẩn hóa bỏ dấu tiếng Việt, xếp hạng theo tiêu đề/phụ đề/nội dung, gợi ý tiền tố và tìm gần đúng khi không có kết quả chính xác.</li>
         <li><strong>Trợ lý AI:</strong> truy xuất bản ghi và trả lời trích xuất có nguồn; từ chối trả lời khi không có dữ liệu. Không có mô hình ngôn ngữ tự do nào được phép bịa nội dung y khoa.</li>
         <li><strong>Không suy đoán:</strong> trường thiếu dữ liệu hiển thị “Chưa có dữ liệu đáng tin cậy”; không dùng một khoảng tham chiếu xét nghiệm chung cho mọi người.</li>
       </ol>
@@ -1312,6 +1282,7 @@ export async function viewAbout(params) {
         <li><strong>Đa ngôn ngữ dữ liệu:</strong> giao diện tiếng Việt; tên bệnh hiển thị song song tiếng Anh và tên khoa học. Một số bệnh và triệu chứng phổ biến có nhãn tiếng Việt do nền tảng biên tập, được lưu ở trạng thái <span class="mono">machine_draft</span> trong bảng <span class="mono">translations</span> và luôn hiển thị kèm nhãn “chưa xác thực”. Chưa có bản dịch chính thức cho toàn bộ danh mục.</li>
         <li><strong>ICD-11:</strong> chưa kết nối do yêu cầu đăng ký và điều khoản truy cập của WHO. Mã ICD-10 và ICD-11 (khi nguồn MONDO cung cấp) được hiển thị khi có.</li>
         <li><strong>Nhãn thuốc:</strong> tải theo từng sản phẩm khi mở trang; không lưu sẵn toàn bộ kho nhãn.</li>
+        <li><strong>Cập nhật dữ liệu trên web:</strong> bản công khai là tĩnh và chỉ đọc. Muốn cập nhật phải chạy bộ nhập dữ liệu trên máy có database, chạy <span class="mono">npm run build:static</span>, rồi triển khai lại snapshot.</li>
       </ul>
     </div>
     <div class="card card-pad-lg mt-2">

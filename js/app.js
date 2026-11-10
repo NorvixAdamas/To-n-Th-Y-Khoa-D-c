@@ -1,11 +1,11 @@
 /** Application shell: hash router, global search, navigation. */
 import { render, errorState, loadingBlock, setActiveNav, esc, fmt, toast } from './ui.js';
-import { debounce } from './api.js';
+import { debounce, getJson } from './api.js';
 import {
-  viewHome, viewDiseases, viewDisease, viewSymptoms, viewSymptom, viewAnatomy,
+  viewHome, viewDiseases, viewDisease, viewSymptoms, viewSymptom, viewAnatomy, viewAnatomyDetail,
   viewDrugs, viewDrug, viewLabs, viewLab, viewOrganisms, viewOrganism,
   viewGenes, viewGene, viewCodes, viewResearch, viewTrials, viewSearch, viewAssistant,
-  viewAdmin, viewAbout, viewNotFound, disposeView
+  viewAbout, viewNotFound, disposeView
 } from './views.js';
 
 const app = document.getElementById('app');
@@ -26,6 +26,7 @@ const routes = [
   { match: p => p === '/symptoms', view: viewSymptoms },
   { match: p => p.startsWith('/symptoms/'), view: viewSymptom, slug: true },
   { match: p => p === '/anatomy', view: viewAnatomy },
+  { match: p => p.startsWith('/anatomy/'), view: viewAnatomyDetail, slug: true },
   { match: p => p === '/drugs', view: viewDrugs },
   { match: p => p.startsWith('/drugs/'), view: viewDrug, slug: true },
   { match: p => p === '/labs', view: viewLabs },
@@ -39,7 +40,6 @@ const routes = [
   { match: p => p === '/trials', view: viewTrials },
   { match: p => p === '/search', view: viewSearch },
   { match: p => p === '/assistant', view: viewAssistant },
-  { match: p => p === '/admin', view: viewAdmin },
   { match: p => p === '/about', view: viewAbout }
 ];
 
@@ -73,7 +73,7 @@ function titleFor(path, segments) {
     diseases: 'Bệnh học toàn cầu', symptoms: 'Bộ khám phá triệu chứng', anatomy: 'Giải phẫu tương tác 3D',
     drugs: 'Dược điển toàn cầu', labs: 'Thư viện xét nghiệm', organisms: 'Vi sinh & tác nhân gây bệnh',
     genes: 'Gene & di truyền', codes: 'Mã bệnh ICD-10-CM', research: 'Nghiên cứu y khoa', trials: 'Thử nghiệm lâm sàng',
-    search: 'Tìm kiếm toàn hệ thống', assistant: 'Trợ lý tri thức y khoa', admin: 'Trung tâm dữ liệu', about: 'Về nền tảng'
+    search: 'Tìm kiếm toàn hệ thống', assistant: 'Trợ lý tri thức y khoa', about: 'Về nền tảng'
   };
   return map[segments[0]] || map[path.replace('/', '')] || 'Global Medical Encyclopedia';
 }
@@ -106,9 +106,7 @@ async function loadSuggestions(value) {
   const q = value.trim();
   if (q.length < 2) { closeSuggest(); return; }
   try {
-    const res = await fetch(`/api/suggest?q=${encodeURIComponent(q)}`);
-    if (!res.ok) return;
-    const data = await res.json();
+    const data = await getJson(`/api/suggest?q=${encodeURIComponent(q)}`);
     if (!data.suggestions?.length) { closeSuggest(); return; }
     suggestBox.innerHTML = data.suggestions.map(s => `
       <a class="suggest-item" href="${esc(s.url)}">
@@ -157,12 +155,12 @@ window.addEventListener('hashchange', route);
 if (!location.hash) location.hash = '#/';
 route();
 
-fetch('/api/stats').then(r => r.json()).then(stats => {
+getJson('/api/stats').then(stats => {
   const el = document.getElementById('headerSourceCount');
   if (el) el.textContent = `${fmt(stats.counts.diseases)} bệnh · ${stats.sources.length} nguồn dữ liệu`;
 }).catch(() => {
   const el = document.getElementById('headerSourceCount');
-  if (el) el.textContent = 'Không kết nối được API';
+  if (el) el.textContent = 'Không tải được dữ liệu';
 });
 
 window.addEventListener('error', event => {

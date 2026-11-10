@@ -10,6 +10,8 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
+    "build:static": "node scripts/build-static.js",
+    "serve:static": "node scripts/serve-static.js",
     "ingest": "node scripts/ingest/run.js",
     "ingest:mondo": "node scripts/ingest/mondo.js",
     "ingest:hpo": "node scripts/ingest/hpo.js",
