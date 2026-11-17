@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Medical Encyclopedia — Bách Khoa Toàn Thư Y Khoa Toàn Cầu</title>
+  <meta name="description" content="Nền tảng bách khoa toàn thư y khoa với dữ liệu từ MONDO, HPO, Orphanet, Uberon, openFDA, NCBI, PubMed, Europe PMC và ClinicalTrials.gov. Tra cứu bệnh, triệu chứng, thuốc, giải phẫu 3D, gene và nghiên cứu khoa học.">
+  <meta name="theme-color" content="#071528">
+  <meta property="og:title" content="Global Medical Encyclopedia">
+  <meta property="og:description" content="One platform. All medical knowledge. Dữ liệu y khoa có nguồn, mã định danh và ngày cập nhật.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b2138'/%3E%3Cpath d='M28 14h8v14h14v8H36v14h-8V36H14v-8h14z' fill='%2329c6d8'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#app">Bỏ qua điều hướng</a>
+
+  <header class="site-header" id="siteHeader">
+    <div class="header-bar">
+      <a class="brand" href="#/" aria-label="Global Medical Encyclopedia — trang chủ">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img"><rect width="48" height="48" rx="12" fill="url(#g1)"/><path d="M21 10h6v11h11v6H27v11h-6V27H10v-6h11z" fill="#eafcff"/><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1e6fd9"/><stop offset="1" stop-color="#0b2138"/></linearGradient></defs></svg>
+        </span>
+        <span class="brand-text">
+          <strong>GLOBAL MEDICAL</strong>
+          <span>ENCYCLOPEDIA</span>
+        </span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mainNav" aria-label="Mở menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="main-nav" id="mainNav" aria-label="Điều hướng chính">
+        <a href="#/diseases" data-nav="diseases">Bệnh học</a>
+        <a href="#/symptoms" data-nav="symptoms">Triệu chứng</a>
+        <a href="#/anatomy" data-nav="anatomy">Giải phẫu 3D</a>
+        <a href="#/drugs" data-nav="drugs">Thuốc</a>
+        <a href="#/labs" data-nav="labs">Xét nghiệm</a>
+        <a href="#/organisms" data-nav="organisms">Vi sinh</a>
+        <a href="#/genes" data-nav="genes">Gene</a>
+        <a href="#/codes" data-nav="codes">Mã ICD-10</a>
+        <a href="#/research" data-nav="research">Nghiên cứu</a>
+        <a href="#/trials" data-nav="trials">Thử nghiệm</a>
+        <a href="#/assistant" data-nav="assistant" class="nav-ai">Trợ lý AI</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="icon-btn" href="#/search" aria-label="Tìm kiếm toàn hệ thống" title="Tìm kiếm toàn hệ thống">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="header-search">
+      <form id="headerSearchForm" role="search" autocomplete="off">
+        <label class="sr-only" for="headerSearchInput">Tìm kiếm toàn hệ thống</label>
+        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <input id="headerSearchInput" type="search" placeholder="Tìm bệnh, triệu chứng, thuốc, gene, xét nghiệm, mã ICD-10 / MONDO / ORPHA…" />
+        <button type="submit" class="btn btn-primary btn-sm">Tra cứu</button>
+        <div class="suggest-box" id="suggestBox" role="listbox" aria-label="Gợi ý tìm kiếm" hidden></div>
+      </form>
+      <div class="header-meta">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span id="headerSourceCount">Đang tải snapshot dữ liệu…</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="app" tabindex="-1">
+    <div class="page-loader">
+      <div class="pulse-cross" aria-hidden="true">✚</div>
+      <p>Đang kết nối kho tri thức y khoa…</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">GLOBAL MEDICAL ENCYCLOPEDIA</div>
+        <p class="footer-note">Bách khoa toàn thư y khoa toàn cầu. Dữ liệu có mã định danh, nguồn gốc, giấy phép và ngày cập nhật.</p>
+        <p class="footer-note"><a href="#/about">Phương pháp, giấy phép &amp; miễn trừ</a></p>
+      </div>
+      <div>
+        <h4>Thư viện</h4>
+        <ul>
+          <li><a href="#/diseases">Bệnh học toàn cầu</a></li>
+          <li><a href="#/symptoms">Bộ khám phá triệu chứng</a></li>
+          <li><a href="#/anatomy">Giải phẫu tương tác 3D</a></li>
+          <li><a href="#/drugs">Dược điển toàn cầu</a></li>
+          <li><a href="#/labs">Xét nghiệm y khoa</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Nghiên cứu</h4>
+        <ul>
+          <li><a href="#/research">PubMed · Europe PMC</a></li>
+          <li><a href="#/trials">ClinicalTrials.gov</a></li>
+          <li><a href="#/organisms">Vi sinh &amp; tác nhân</a></li>
+          <li><a href="#/genes">Gene &amp; di truyền</a></li>
+          <li><a href="#/codes">Mã ICD-10-CM</a></li>
+          <li><a href="#/assistant">Trợ lý tri thức AI</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Nguồn dữ liệu</h4>
+        <ul>
+          <li><a href="#/about">MONDO · HPO · Orphanet · DOID</a></li>
+          <li><a href="#/about">NCBI Gene · Reactome · UniProt</a></li>
+          <li><a href="#/about">CMS ICD-10-CM · openFDA</a></li>
+          <li><a href="#/about">PubMed · Europe PMC · Crossref · OpenAlex</a></li>
+          <li><a href="#/about">Dữ liệu tĩnh, giấy phép &amp; phương pháp</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      <strong>Cảnh báo y khoa:</strong> This platform is for educational and informational purposes only. It does not replace professional medical advice, diagnosis, or treatment. Nền tảng không đưa ra chẩn đoán hay kê đơn. Trong trường hợp cấp cứu, hãy liên hệ ngay dịch vụ cấp cứu tại địa phương.
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="footerYear"></span> Global Medical Encyclopedia. Dữ liệu thuộc giấy phép của từng nguồn được ghi nhận.</span>
+      <span id="footerBuild">Static snapshot · Tìm kiếm phía client · Three.js</span>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
